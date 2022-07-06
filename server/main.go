@@ -10,14 +10,14 @@ import (
 type book struct{
 	ID      string `json:"id"`
 	Title   string `json:"title"`
-	Author  string `json:"author"`
+	Authour  string `json:"authour"`
 	Quantity int	`json:"quantity"`
 }
 
 var books = []book{
-		{ID: "1", Title: "In Search of Lost Time", Author: "Marcel Proust", Quantity: 2},
-		{ID: "2", Title: "The Great Gatsby", Author: "F. Scott Fitzgerald", Quantity: 5},
-		{ID: "3", Title: "War and Peace", Author: "Leo Tolstoy", Quantity: 6},
+		{ID: "1", Title: "In Search of Lost Time", Authour: "Marcel Proust", Quantity: 2},
+		{ID: "2", Title: "The Great Gatsby", Authour: "F. Scott Fitzgerald", Quantity: 5},
+		{ID: "3", Title: "War and Peace", Authour: "Leo Tolstoy", Quantity: 6},
 }
 
 func getBooks(c *gin.Context){
@@ -41,7 +41,7 @@ func getBooksById(id string)(*book,error){
 			return &books[i],nil
 		}
 	}
-	return  nil,errors.New("Books Not Found")
+	return  nil, errors.New("Books Not Found")
 }
 
 func  createBooks(c *gin.Context){
@@ -55,21 +55,20 @@ func  createBooks(c *gin.Context){
 }
 
 func updateBook(c *gin.Context){
-	id,ok:=c.GetQuery("id")
-	title,_:=c.GetQuery("title")
-
-	if !ok{
-		c.IndentedJSON(http.StatusBadRequest,gin.H{"message":"Missing id parameter"})
+	id:=c.Param("id")
+	
+	var newbook_obj book
+	if err:=c.BindJSON(&newbook_obj);err!=nil{
 		return
 	}
-	
+
 	book,err:=getBooksById(id)
 	if err!=nil{
 		c.IndentedJSON(http.StatusBadRequest,gin.H{"message":"Book Not Found"})
 		return
 	}
-    book.Title=title
-	c.IndentedJSON(http.StatusOK,book)
+    *book=newbook_obj
+	c.IndentedJSON(http.StatusOK,books)
 }
 
 
@@ -78,6 +77,6 @@ func main(){
 	router.GET("/book",getBooks)
 	router.POST("/book",createBooks)
 	router.GET("/book/:id",booksByID)
-	router.PATCH("/book",updateBook)
+	router.PUT("/book/:id",updateBook)
 	router.Run("localhost:8080")
 }
